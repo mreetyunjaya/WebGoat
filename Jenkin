@@ -9,18 +9,14 @@ pipeline {
                     mvn -B  install -DskipTests'''
       }
     }
-    stage('Scan App - Build Container') {
-      parallel {
-        stage('IQ-BOM') {
-          steps {
-            nexusPolicyEvaluation(iqApplication: 'webgoat8', iqStage: 'build', iqScanPatterns: [[scanPattern: '']])
-          }
+     stage ('SAST') {
+        steps {
+        withSonarQubeEnv('sonar') {
+            sh 'mvn clean install sonar:sonar'
+            sh 'cat target/sonar/report-task.txt'
+               }
         }
-        stage('Static Analysis') {
-          steps {
-            echo '...run SonarQube or other SAST tools here'
-          }
-        }
+    }
         stage('Build Container') {
           steps {
             sh '''#!/bin/bash
