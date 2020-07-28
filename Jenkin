@@ -9,15 +9,8 @@ pipeline {
                     mvn -B  install -DskipTests'''
       }
     }
-     stage ('SAST') {
-        steps {
-        withSonarQubeEnv('sonar') {
-            sh 'mvn clean install sonar:sonar'
-            sh 'cat target/sonar/report-task.txt'
-               }
-        }
-    }
-        stage('Build Container') {
+     
+   stage('Build Container') {
           steps {
             sh '''#!/bin/bash
 cd webgoat-server
@@ -40,14 +33,6 @@ docker push registry.mycompany.com/webgoat/webgoat-8.0:latest
             anchore 'anchore_images'
           }
         }
-        stage('IQ-Scan Application') {
-          steps {
-            sh 'docker save webgoat/webgoat-8.0 -o $WORKSPACE/webgoat.tar'
-            nexusPolicyEvaluation(iqStage: 'stage-release', iqApplication: 'webgoat8', iqScanPatterns: [[scanPattern: 'webgoat.tar']])
-          }
-        }
-      }
-    }
     stage('Publish Container') {
       when {
         branch 'master'
